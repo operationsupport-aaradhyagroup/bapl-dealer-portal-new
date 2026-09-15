@@ -67,6 +67,20 @@ aside nav > button svg {
 }
 
 @media (max-width: 639px) {
+  /* Zoho opens the portal inside an embedded mobile frame. Avoid trapping the
+     page in a fixed-height inner scroll container, which prevents touch scroll. */
+  .portal-shell {
+    display: block;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .portal-content {
+    min-height: 100dvh;
+    overflow: visible;
+    padding-bottom: 2rem;
+  }
   /* Give compact screens comfortable touch targets without horizontal scrolling. */
   button,
   input[type='date'],

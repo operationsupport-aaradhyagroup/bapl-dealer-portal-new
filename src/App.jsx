@@ -362,7 +362,7 @@ export default function App() {
 
     // --- MAIN LAYOUT WITH PREMIUM LIGHT THEME ---
     return (
-        <div className="h-screen w-full bg-gray-50 text-gray-800 flex font-sans overflow-hidden">
+        <div className="portal-shell h-screen w-full bg-gray-50 text-gray-800 flex font-sans overflow-hidden">
             {/* Left Sidebar */}
             <aside className="w-64 bg-white flex flex-col hidden md:flex border-r border-gray-200 shadow-sm z-10">
                 <div className="p-6 flex items-center gap-3 border-b border-gray-100">
@@ -427,7 +427,7 @@ export default function App() {
             </div>
 
             {/* Main Content Area */}
-            <main className="flex-1 p-4 pt-28 sm:p-6 sm:pt-28 md:p-10 md:pt-10 md:ml-0 md:mt-0 overflow-y-auto bg-gray-50 relative">
+            <main className="portal-content flex-1 p-4 pt-28 sm:p-6 sm:pt-28 md:p-10 md:pt-10 md:ml-0 md:mt-0 overflow-y-auto bg-gray-50 relative">
                 
                 {/* --- TOAST NOTIFICATION UI --- */}
 {toast && (
