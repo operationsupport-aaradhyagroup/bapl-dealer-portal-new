@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  font-family: Manrope, Aptos, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  color: #1e293b;
+  background: #f8fafc;
+  font-synthesis: none;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #f8fafc;
+  letter-spacing: 0;
+}
+
+/* Calm, readable business typography: headings stay clear without looking heavy. */
+.font-black {
+  font-weight: 600 !important;
+  letter-spacing: -0.015em;
+}
+
+.font-bold {
+  font-weight: 500 !important;
+}
+
+.font-semibold {
+  font-weight: 500 !important;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Keep the desktop navigation compact and aligned even on narrower screens. */
+aside nav > button {
+  min-width: 0;
+  justify-content: flex-start;
+  gap: 0.65rem;
+  padding-inline: 0.85rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+aside nav > button svg {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 639px) {
+  /* Give compact screens comfortable touch targets without horizontal scrolling. */
+  button,
+  input[type='date'],
+  input[type='file'] {
+    max-width: 100%;
+  }
+
+  input[type='file'] {
+    font-size: 0.75rem;
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/balance-confirmations/:path*",
+      "destination": "/api/balance-confirmations"
+    }
+  ]
+}
