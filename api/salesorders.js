@@ -1,10 +1,7 @@
 import { getAccessToken, zohoApi } from './utils/zohoAuth.js';
 
-const getThreeMonthsAgoDate = () => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - 3);
-    return date;
-};
+const BALANCE_CONFIRMATION_MODULE = 'cm_balance_confirmation';
+const LEDGER_FIELD = 'cf_cm_all_ledgers_details';
 
 async function resolveContactId(api, customerIdentifier) {
     const value = String(customerIdentifier || '').trim();
@@ -18,6 +15,33 @@ async function resolveContactId(api, customerIdentifier) {
         (item) => String(item.contact_number) === value
     );
     return contact?.contact_id || null;
+}
+
+function latestLedgerRow(rows) {
+    return [...rows].sort((first, second) => {
+        const firstDate = first.cf_period_to || first.cf_period_from || '';
+        const secondDate = second.cf_period_to || second.cf_period_from || '';
+        return String(secondDate).localeCompare(String(firstDate));
+    })[0];
+}
+
+async function hasUploadedLatestBalanceConfirmation(api, customerId) {
+    const listResponse = await api.get(`/${BALANCE_CONFIRMATION_MODULE}`, {
+        params: { per_page: 200 },
+    });
+    const latestConfirmation = (listResponse.data.module_records || [])
+        .filter((record) => String(record.cf_customers) === String(customerId))
+        .sort((first, second) => new Date(second.last_modified_time || 0) - new Date(first.last_modified_time || 0))[0];
+
+    if (!latestConfirmation?.module_record_id) return false;
+
+    const detailResponse = await api.get(
+        `/${BALANCE_CONFIRMATION_MODULE}/${latestConfirmation.module_record_id}`
+    );
+    const confirmation = detailResponse.data.module_record_hash || {};
+    const latestRow = latestLedgerRow(confirmation[LEDGER_FIELD] || []);
+
+    return Boolean(latestRow?.cf_ledger_upload);
 }
 
 export default async function handler(req, res) {
@@ -40,29 +64,18 @@ export default async function handler(req, res) {
             return res.status(404).json({ error: 'No Zoho Books customer matches this customer number.' });
         }
 
-        // 1. Fetch Contact Details to check uploaded documents & owner/salesperson info
-        const contactRes = await api.get(`/contacts/${customerId}`);
-        const contact = contactRes.data.contact || {};
-        
-        const documents = contact.documents || [];
-        const threeMonthsAgo = getThreeMonthsAgoDate();
-
-        const hasRecentConfirmation = documents.some(doc => {
-            const datePart = doc.uploaded_on ? doc.uploaded_on.split(' ')[0] : '';
-            const [day, month, year] = datePart.split('-');
-            if (!day || !month || !year) return false;
-
-            const docDate = new Date(`${year}-${month}-${day}`);
-            return docDate >= threeMonthsAgo;
-        });
-
-        if (!hasRecentConfirmation) {
+        // A dealer must upload the ledger for their newest Balance Confirmation
+        // period before creating another sales order. Checking the confirmation row
+        // (rather than any contact document) prevents unrelated uploads from bypassing this rule.
+        if (!await hasUploadedLatestBalanceConfirmation(api, customerId)) {
             return res.status(403).json({ 
-                error: 'Order Blocked: Please upload your mandatory quarterly ledger confirmation document in the Ledger section first.' 
+                error: 'Order Blocked: Upload the ledger for your latest Balance Confirmation period before placing an order.'
             });
         }
 
-        // 2. Create Sales Order Payload with Salesperson
+        // Create Sales Order Payload with Salesperson
+        const contactRes = await api.get(`/contacts/${customerId}`);
+        const contact = contactRes.data.contact || {};
         const { cartItems } = req.body;
         if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
             return res.status(400).json({ error: 'Cart items are missing or invalid.' });
